@@ -6,14 +6,14 @@ function Producto(nombre, precio, stock) {
 
 let lista = [];
 
-// Si hay algo en localStorage, lo cargamos a la lista
+
 if (localStorage.getItem("productos")) {
     lista = JSON.parse(localStorage.getItem("productos"));
 }
 
 const outputContainer = document.getElementById("outputContainer");
 
-// Función para filtrar productos
+
 function filtrarProductos() {
     limpiarOutput(outputContainer);
 
@@ -32,7 +32,7 @@ function filtrarProductos() {
     }
 }
 
-// Función para agregar productos
+
 function agregarProducto() {
     const form = crearFormulario();
 
@@ -69,7 +69,7 @@ function agregarProducto() {
     body.appendChild(form);
 }
 
-// Función para mostrar un mensaje en el contenedor de salida
+
 function mostrarMensaje(mensaje) {
     limpiarOutput(outputContainer);
     const mensajeElement = document.createElement("p");
@@ -77,7 +77,6 @@ function mostrarMensaje(mensaje) {
     outputContainer.appendChild(mensajeElement);
 }
 
-// Función para mostrar la opción de agregar
 function mostrarOpcionAgregar(nombreProducto) {
     const agregarOpcion = document.createElement("button");
     agregarOpcion.textContent = `Agregar ${nombreProducto} al inventario`;
@@ -87,7 +86,7 @@ function mostrarOpcionAgregar(nombreProducto) {
     outputContainer.appendChild(agregarOpcion);
 }
 
-// Función para agregar producto al inventario
+
 function agregarProductoAlInventario(nombreProducto) {
     const precio = parseFloat(prompt(`Ingrese el precio para ${nombreProducto}:`));
     const stock = parseInt(prompt(`Ingrese el stock para ${nombreProducto}:`));
@@ -104,7 +103,7 @@ function agregarProductoAlInventario(nombreProducto) {
     }
 }
 
-// Función para crear una card de producto
+
 function crearCard(producto) {
     const card = document.createElement("div");
     card.classList.add("container");
@@ -124,7 +123,7 @@ function crearCard(producto) {
     return card;
 }
 
-// Función para crear el formulario de agregar producto
+
 function crearFormulario() {
     const form = document.createElement("form");
 
@@ -144,16 +143,16 @@ function crearFormulario() {
     return form;
 }
 
-// Función para verificar si un producto ya existe en la lista
+
 function productoExistente(producto) {
     return lista.some(elemento => elemento.nombre === producto.nombre);
 }
 
-// Función para limpiar el contenido de un contenedor
+
 function limpiarOutput(container) {
     container.innerHTML = "";
 }
 
-// Eventos de los botones
+
 document.getElementById("agregarProducto").addEventListener("click", agregarProducto);
 document.getElementById("filtrar").addEventListener("click", filtrarProductos);
