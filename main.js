@@ -1,68 +1,159 @@
-function Producto(nombre, precio, categoria) {
+function Producto(nombre, precio, stock) {
     this.nombre = nombre;
     this.precio = precio;
-    this.categoria = categoria;
+    this.stock = stock;
 }
 
-let inventario = [];
-let carrito = [];
+let lista = [];
 
-function agregarProductoAlInventario() {
-    let nombre = prompt("Ingrese el nombre del producto:");
-    let precio = parseFloat(prompt("Ingrese el precio del producto:"));
-    let categoria = prompt("Ingrese la categoría del producto (New + Best Sellers, Face, Eyes, Lips):");
-
-    if (!isNaN(precio) && nombre && categoriaValida(categoria)) {
-        let producto = new Producto(nombre, precio, categoria);
-        inventario.push(producto);
-        alert("Producto agregado al inventario correctamente.");
-    } else {
-        alert("Ingrese datos válidos.");
-    }
+// Si hay algo en localStorage, lo cargamos a la lista
+if (localStorage.getItem("productos")) {
+    lista = JSON.parse(localStorage.getItem("productos"));
 }
 
-function categoriaValida(categoria) {
-    const categoriasPermitidas = ['New + Best Sellers', 'Face', 'Eyes', 'Lips'];
-    return categoriasPermitidas.includes(categoria);
-}
+const outputContainer = document.getElementById("outputContainer");
 
-function mostrarInventario() {
-    console.log("Inventario de productos:");
-    inventario.forEach(producto => {
-        console.log(`${producto.nombre} - $${producto.precio} - Categoría: ${producto.categoria}`);
-    });
-}
+// Función para filtrar productos
+function filtrarProductos() {
+    limpiarOutput(outputContainer);
 
-function mostrarProductosPorCategoria() {
-    let categoriaSeleccionada = prompt("Ingrese la categoría que desea ver (New + Best Sellers, Face, Eyes, Lips):");
-    if (categoriaValida(categoriaSeleccionada)) {
-        let productosFiltrados = inventario.filter(producto => producto.categoria.toLowerCase() === categoriaSeleccionada.toLowerCase());
+    const input = document.getElementById("filtrarP").value.trim().toUpperCase();
+    const palabraClave = input.trim().toUpperCase();
+    const resultado = lista.filter(producto => producto.nombre.toUpperCase().includes(palabraClave));
 
-        if (productosFiltrados.length > 0) {
-            console.log(`Productos en la categoría ${categoriaSeleccionada}:`);
-            productosFiltrados.forEach(producto => {
-                console.log(`${producto.nombre} - $${producto.precio}`);
-            });
-        } else {
-            console.log(`No hay productos en la categoría ${categoriaSeleccionada}.`);
-        }
-    } else {
-        alert("Categoría no válida. Por favor, elija una categoría válida.");
-    }
-}
-
-function verStock() {
-    console.log("Productos en stock:");
-    if (inventario.length > 0) {
-        inventario.forEach(producto => {
-            console.log(`${producto.nombre} - $${producto.precio} - Categoría: ${producto.categoria}`);
+    if (resultado.length > 0) {
+        resultado.forEach(producto => {
+            const card = crearCard(producto);
+            outputContainer.appendChild(card);
         });
     } else {
-        console.log("El inventario está vacío.");
+        mostrarMensaje("No hay coincidencias. ¿Desea agregar este producto al inventario?");
+        mostrarOpcionAgregar(palabraClave);
     }
 }
 
-agregarProductoAlInventario();
-agregarProductoAlInventario();
-verStock();
-mostrarProductosPorCategoria();
+// Función para agregar productos
+function agregarProducto() {
+    const form = crearFormulario();
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+
+        const nombreInput = document.getElementById("nombre-input").value.trim();
+        const precioInput = parseFloat(document.getElementById("precio-input").value);
+        const stockInput = parseInt(document.getElementById("stock-input").value);
+
+        if (isNaN(precioInput) || isNaN(stockInput) || nombreInput === "") {
+            mostrarMensaje("Por favor, ingresa valores válidos.");
+            return;
+        }
+
+        const nuevoProducto = new Producto(nombreInput, precioInput, stockInput);
+
+        if (productoExistente(nuevoProducto)) {
+            mostrarMensaje("El producto ya existe");
+            return;
+        }
+
+        lista.push(nuevoProducto);
+        localStorage.setItem("productos", JSON.stringify(lista));
+        mostrarMensaje(`Se agregó el producto ${nuevoProducto.nombre} a la lista`);
+
+        const card = crearCard(nuevoProducto);
+        outputContainer.appendChild(card);
+
+        form.reset();
+    });
+
+    const body = document.querySelector("body");
+    body.appendChild(form);
+}
+
+// Función para mostrar un mensaje en el contenedor de salida
+function mostrarMensaje(mensaje) {
+    limpiarOutput(outputContainer);
+    const mensajeElement = document.createElement("p");
+    mensajeElement.textContent = mensaje;
+    outputContainer.appendChild(mensajeElement);
+}
+
+// Función para mostrar la opción de agregar
+function mostrarOpcionAgregar(nombreProducto) {
+    const agregarOpcion = document.createElement("button");
+    agregarOpcion.textContent = `Agregar ${nombreProducto} al inventario`;
+    agregarOpcion.addEventListener("click", function () {
+        agregarProductoAlInventario(nombreProducto);
+    });
+    outputContainer.appendChild(agregarOpcion);
+}
+
+// Función para agregar producto al inventario
+function agregarProductoAlInventario(nombreProducto) {
+    const precio = parseFloat(prompt(`Ingrese el precio para ${nombreProducto}:`));
+    const stock = parseInt(prompt(`Ingrese el stock para ${nombreProducto}:`));
+
+    if (!isNaN(precio) && !isNaN(stock)) {
+        const nuevoProducto = new Producto(nombreProducto, precio, stock);
+        lista.push(nuevoProducto);
+        localStorage.setItem("productos", JSON.stringify(lista));
+        mostrarMensaje(`Se agregó el producto ${nombreProducto} al inventario`);
+        const card = crearCard(nuevoProducto);
+        outputContainer.appendChild(card);
+    } else {
+        mostrarMensaje("Ingrese datos válidos para precio y stock.");
+    }
+}
+
+// Función para crear una card de producto
+function crearCard(producto) {
+    const card = document.createElement("div");
+    card.classList.add("container");
+
+    const nombre = document.createElement("h2");
+    nombre.textContent = `Nombre: ${producto.nombre}`;
+    card.appendChild(nombre);
+
+    const precio = document.createElement("p");
+    precio.textContent = `Precio: ${producto.precio}`;
+    card.appendChild(precio);
+
+    const stock = document.createElement("p");
+    stock.textContent = `Cantidad: ${producto.stock}`;
+    card.appendChild(stock);
+
+    return card;
+}
+
+// Función para crear el formulario de agregar producto
+function crearFormulario() {
+    const form = document.createElement("form");
+
+    form.innerHTML = `
+        <label for="nombre-input">Nombre:</label>
+        <input id="nombre-input" type="text" required>
+        
+        <label for="precio-input">Precio:</label>
+        <input id="precio-input" type="number" step="0.01" required>
+
+        <label for="stock-input">Stock:</label>
+        <input id="stock-input" type="number" required>
+
+        <button type="submit">Agregar</button>
+    `;
+
+    return form;
+}
+
+// Función para verificar si un producto ya existe en la lista
+function productoExistente(producto) {
+    return lista.some(elemento => elemento.nombre === producto.nombre);
+}
+
+// Función para limpiar el contenido de un contenedor
+function limpiarOutput(container) {
+    container.innerHTML = "";
+}
+
+// Eventos de los botones
+document.getElementById("agregarProducto").addEventListener("click", agregarProducto);
+document.getElementById("filtrar").addEventListener("click", filtrarProductos);
